@@ -1,0 +1,21 @@
+data:
+  tokens_dir: "data/processed/tokens"   
+  max_seq_len: 2048                         
+
+model:
+  vocab_size: null               
+  embed_dim: 256
+  n_heads: 8
+  n_layers: 6
+  ff_dim: 1024
+  dropout: 0.1
+
+generation:
+  max_new_tokens: 2048
+  temperature: 1.0
+  top_k: 20
+  top_p: 0.9      
+  seed_midi_path: null             
+output:
+  midi_dir: "/content/drive/MyDrive/Moroccan-IA-music-composer/outputs/generated_midi"
+  audio_dir: "/content/drive/MyDrive/Moroccan-IA-music-composer/outputs/audio"

@@ -1,0 +1,50 @@
+time_shift_step = 10        # ms
+max_time_shift = 1000      # ms
+velocity_bins = 8
+
+def quantize_velocity(v):
+    return int((v / 127) * (velocity_bins - 1))
+
+
+
+def midi_to_events(midi, use_velocity=True, use_time_shift=True):
+    """
+    Convert midi object into a sequence of symbolic events.
+    """
+    events = []
+    current_time = 0.0
+
+    notes = []
+    for instrument in midi.instruments:
+        for note in instrument.notes:
+            notes.append(note)
+
+    notes.sort(key=lambda n: n.start)
+
+    for note in notes:
+        start = note.start
+        end = note.end
+
+        # Time shift
+        if use_time_shift and start > current_time:
+            delta = start - current_time
+            delta_ms = int(delta * 1000)
+
+            while delta_ms > 0:
+                shift = min(delta_ms, max_time_shift)
+                shift = (shift // time_shift_step) * time_shift_step
+                events.append(f"time_shift_{shift}")
+                delta_ms -= shift
+
+        # Velocity
+        if use_velocity:
+            vel = quantize_velocity(note.velocity)
+            events.append(f"velocity_{vel}")
+
+        #Note_on, Note_off
+        events.append(f"note_on_{note.pitch}")
+        events.append(f"note_off_{note.pitch}")
+
+        current_time = max(current_time, end)
+
+    return events
