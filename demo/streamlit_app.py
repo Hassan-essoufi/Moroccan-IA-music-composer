@@ -1,13 +1,9 @@
 import streamlit as st
 import requests
-import tempfile
 import os
-from pathlib import Path
-from pathlib import Path
 
-# -------------------------
+
 # Configuration
-# -------------------------
 API_URL = "http://localhost:8000/api/generate"
 
 st.set_page_config(page_title="Moroccan Music Transformer", page_icon="🎵")
@@ -15,9 +11,7 @@ st.set_page_config(page_title="Moroccan Music Transformer", page_icon="🎵")
 st.title("🎵 Moroccan Music Transformer")
 st.write("Générez de la musique à partir d'un prompt et écoutez le résultat !")
 
-# -------------------------
 # Formulaire utilisateur
-# -------------------------
 with st.form(key="generate_form"):
     prompt = st.text_input("Seed MIDI / Prompt (optionnel)", "")
     length = st.number_input("Length (number of tokens/events)", min_value=32, max_value=1024, value=128, step=16)
@@ -26,9 +20,8 @@ with st.form(key="generate_form"):
     
     submit_button = st.form_submit_button("Generate Music 🎶")
 
-# -------------------------
-# Appel API
-# -------------------------
+
+# Call API
 if submit_button:
     payload = {
         "prompt": prompt,
@@ -48,11 +41,10 @@ if submit_button:
                 midi_path = data["midi_file_path"]
                 wav_path = data["audio_file_path"]
 
-                # Affichage fichiers
                 st.write("**MIDI file:**", midi_path)
                 st.write("**WAV file:**", wav_path)
 
-                # Lecture audio
+                # Reading Audio
                 if os.path.exists(wav_path):
                     audio_file = open(wav_path, "rb")
                     st.audio(audio_file.read(), format="audio/wav")

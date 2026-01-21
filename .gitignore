@@ -7,3 +7,6 @@ myenv
 
 .ipynb_checkpoints
 
+tests/
+
+data/raw/
