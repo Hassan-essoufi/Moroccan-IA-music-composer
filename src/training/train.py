@@ -2,6 +2,7 @@ import os
 import tensorflow as tf
 import mlflow
 import mlflow.tensorflow
+import mlflow.pyfunc
 from pathlib import Path
 
 from src.datasets.midi_dataset import MidiDataset
@@ -146,8 +147,6 @@ def train(config):
 
     checkpoint_maestro = config["training"]["checkpoint_maestro"]
     final_model_path = config["training"]["final_model_path"]
-    checkpoint_dir = config["training"]["checkpoint_dir"]
-
     gnawa_path = Path(tokens_dir) / "gnawa"
     train_file = "train.npz"
     val_file = "val.npz"
@@ -239,5 +238,25 @@ def train(config):
             model.set_weights(best_weights)
         # Save Checkpoint
         model.save(final_model_path)
-        mlflow.tensorflow.log_model(model, "music_transformer")
+
+        class MusicGeneratorModel(mlflow.pyfunc.PythonModel):
+            def load_context(self, context):
+                self.model = tf.keras.models.load_model(final_model_path,
+                    custom_objects={
+                        'CustomSchedule': CustomSchedule,
+                        'masked_sparse_categorical_crossentropy': masked_sparse_categorical_crossentropy
+                    },
+                    compile=False
+                )
+
+            def predict(self, context, model_input):
+                return self.model.predict(model_input)
+
+            # Log & register
+        mlflow.pyfunc.log_model(
+            artifact_path="model",
+            python_model=MusicGeneratorModel(),
+            input_example=train_dataset.take(1),
+            registered_model_name="music-generator"
+            )
     print(f"Final model saved to {final_model_path}")
